@@ -1,0 +1,1311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZeroSpace Web</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-void: #0A0E1A; --bg-panel: #121829; --bg-panel-raised: #171F36;
+  --accent: #5B6EF5; --accent-dim: #3C4A9E; --star: #F5C77E;
+  --text: #E8EAF2; --text-dim: #8890A8; --border: #242C47;
+  --danger: #F2715B; --success: #6FCF97;
+  --font-display: 'Space Grotesk', sans-serif; --font-body: 'Inter', sans-serif;
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 14px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: var(--bg-void); color: var(--text); font-family: var(--font-body); -webkit-font-smoothing: antialiased; min-height: 100vh; }
+a { color: inherit; text-decoration: none; }
+button { font-family: inherit; cursor: pointer; }
+img { max-width: 100%; display: block; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+/* ===== Top bar ===== */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 20px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+.topbar-left { display: flex; align-items: center; gap: 10px; }
+.topbar-brand { display: flex; align-items: center; gap: 8px; }
+.topbar-brand svg { width: 24px; height: 24px; flex-shrink: 0; }
+.topbar-brand span { font-family: var(--font-display); font-size: 17px; font-weight: 600; display: none; }
+@media (min-width: 640px) { .topbar-brand span { display: inline; } }
+
+.profile-circle-btn {
+  position: relative;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--accent); color: #fff; font-weight: 600; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; flex-shrink: 0;
+  transition: transform 0.1s ease;
+}
+.profile-circle-btn:hover { transform: scale(1.04); }
+.profile-circle-btn:active { transform: scale(0.96); }
+.profile-edit-badge {
+  position: absolute; bottom: -2px; right: -2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--bg-panel-raised); border: 2px solid var(--bg-panel);
+  display: flex; align-items: center; justify-content: center;
+}
+.profile-edit-badge svg { width: 9px; height: 9px; stroke: var(--text-dim); }
+
+.topbar-icons { display: flex; align-items: center; gap: 4px; }
+.icon-btn {
+  position: relative;
+  width: 42px; height: 42px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg-panel-raised);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+.icon-btn:hover { border-color: var(--accent); }
+.icon-btn:active { transform: scale(0.94); }
+.icon-btn svg { width: 19px; height: 19px; stroke: var(--text); }
+.icon-btn.active { border-color: var(--accent); background: var(--accent-dim); }
+
+.icon-badge {
+  position: absolute; top: -3px; right: -3px;
+  min-width: 17px; height: 17px; padding: 0 4px;
+  background: var(--danger); color: #fff;
+  font-size: 10px; font-weight: 700;
+  border-radius: 10px;
+  display: none; align-items: center; justify-content: center;
+  border: 2px solid var(--bg-panel);
+}
+.icon-badge.show { display: flex; }
+
+.topbar-divider { width: 1px; height: 26px; background: var(--border); margin: 0 6px; }
+
+.avatar-btn {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--accent); color: #fff; font-weight: 600; font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  border: none;
+}
+
+/* ===== Layout ===== */
+.app-body { display: flex; max-width: 1100px; margin: 0 auto; }
+.feed-col { flex: 1; min-width: 0; padding: 20px 16px 80px; }
+@media (min-width: 900px) { .feed-col { padding: 24px 24px 80px; } }
+
+/* ===== Composer ===== */
+.composer {
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 16px; margin-bottom: 20px;
+}
+.composer textarea {
+  width: 100%; background: transparent; border: none; color: var(--text);
+  font-family: var(--font-body); font-size: 15px; resize: none; min-height: 48px;
+  outline: none; line-height: 1.5;
+}
+.composer textarea::placeholder { color: var(--text-dim); }
+.composer-preview { margin-top: 10px; border-radius: var(--radius-sm); overflow: hidden; position: relative; display: none; }
+.composer-preview.show { display: block; }
+.composer-preview img { width: 100%; max-height: 320px; object-fit: cover; }
+.composer-preview .remove-media {
+  position: absolute; top: 8px; right: 8px;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(10,14,26,0.8); border: none; color: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 16px;
+}
+.composer-actions {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+}
+.composer-tools { display: flex; gap: 6px; }
+.tool-btn {
+  display: flex; align-items: center; gap: 6px;
+  background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+  padding: 7px 12px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
+  transition: all 0.15s ease;
+}
+.tool-btn:hover { border-color: var(--accent); color: var(--text); }
+.tool-btn svg { width: 15px; height: 15px; }
+.post-btn {
+  background: var(--accent); color: #fff; border: none;
+  padding: 8px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600;
+}
+.post-btn:hover { background: #6B7BFF; }
+.post-btn:disabled { background: var(--accent-dim); cursor: not-allowed; }
+
+/* ===== Posts ===== */
+.post-card {
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  padding: 16px; margin-bottom: 16px;
+}
+.post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.post-avatar {
+  width: 38px; height: 38px; border-radius: 50%; background: var(--accent-dim);
+  display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex-shrink: 0;
+}
+.post-author { font-size: 14.5px; font-weight: 600; }
+.post-time { font-size: 12.5px; color: var(--text-dim); }
+.post-content { font-size: 14.5px; line-height: 1.55; margin-bottom: 10px; white-space: pre-wrap; }
+.post-photo { border-radius: var(--radius-sm); overflow: hidden; margin-bottom: 4px; }
+.post-photo img { width: 100%; max-height: 420px; object-fit: cover; }
+.yt-embed-wrap { border-radius: var(--radius-sm); overflow: hidden; position: relative; padding-bottom: 56.25%; height: 0; }
+.yt-embed-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+
+.empty-state {
+  text-align: center; padding: 48px 20px; color: var(--text-dim);
+}
+.empty-state svg { width: 40px; height: 40px; margin-bottom: 12px; opacity: 0.5; }
+.empty-state p { font-size: 14px; }
+
+/* ===== Side panels (Friends / Messages / Notifications) ===== */
+.panel-overlay {
+  position: fixed; inset: 0; background: rgba(10,14,26,0.6); z-index: 90;
+  display: none;
+}
+.panel-overlay.show { display: block; }
+.side-panel {
+  position: fixed; top: 0; right: -380px; width: 360px; max-width: 92vw; height: 100vh;
+  background: var(--bg-panel); border-left: 1px solid var(--border);
+  z-index: 100; transition: right 0.25s ease;
+  display: flex; flex-direction: column;
+}
+.side-panel.show { right: 0; }
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; border-bottom: 1px solid var(--border);
+}
+.panel-header h2 { font-family: var(--font-display); font-size: 17px; font-weight: 500; }
+.panel-close { width: 32px; height: 32px; border-radius: 50%; background: var(--bg-panel-raised); border: none; color: var(--text); display: flex; align-items: center; justify-content: center; }
+.panel-body { flex: 1; overflow-y: auto; padding: 10px; }
+
+.list-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 8px; border-radius: var(--radius-sm);
+  transition: background 0.15s ease;
+}
+.list-row:hover { background: var(--bg-panel-raised); }
+.list-avatar {
+  width: 40px; height: 40px; border-radius: 50%; background: var(--accent-dim);
+  display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; flex-shrink: 0;
+}
+.list-info { flex: 1; min-width: 0; }
+.list-name { font-size: 14px; font-weight: 600; }
+.list-sub { font-size: 12.5px; color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.mini-btn {
+  padding: 6px 12px; border-radius: var(--radius-sm); font-size: 12.5px; font-weight: 600; border: none;
+}
+.mini-btn.accept { background: var(--accent); color: #fff; }
+.mini-btn.decline { background: var(--bg-panel-raised); color: var(--text-dim); border: 1px solid var(--border); }
+.unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+
+.panel-search {
+  display: flex; gap: 8px; padding: 12px; border-bottom: 1px solid var(--border);
+}
+.panel-search input {
+  flex: 1; background: var(--bg-void); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 9px 12px; color: var(--text); font-size: 13.5px; font-family: var(--font-body);
+}
+
+/* ===== Chat thread view ===== */
+.chat-view { display: none; flex-direction: column; height: 100%; }
+.chat-view.show { display: flex; }
+.chat-header {
+  display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--border);
+}
+.chat-back { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; background: none; border: none; color: var(--text); }
+.chat-messages { flex: 1; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 8px; }
+.chat-bubble { max-width: 75%; padding: 9px 13px; border-radius: 14px; font-size: 13.5px; line-height: 1.4; }
+.chat-bubble.mine { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+.chat-bubble.theirs { align-self: flex-start; background: var(--bg-panel-raised); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+.chat-input-row { display: flex; gap: 8px; padding: 12px; border-top: 1px solid var(--border); }
+.chat-input-row input {
+  flex: 1; background: var(--bg-void); border: 1px solid var(--border); border-radius: 20px;
+  padding: 10px 16px; color: var(--text); font-size: 13.5px; font-family: var(--font-body);
+}
+.chat-send { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); border: none; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.chat-send svg { width: 16px; height: 16px; }
+
+/* ===== Modals (photo upload / youtube trim) ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(10,14,26,0.75); z-index: 200;
+  display: none; align-items: center; justify-content: center; padding: 16px;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-lg);
+  width: 100%; max-width: 440px; padding: 22px;
+}
+.modal-box h3 { font-family: var(--font-display); font-size: 17px; font-weight: 500; margin-bottom: 4px; }
+.modal-sub { font-size: 13px; color: var(--text-dim); margin-bottom: 18px; }
+.modal-box .field { margin-bottom: 14px; }
+.modal-box label { display: block; font-size: 13px; color: var(--text-dim); margin-bottom: 6px; }
+.modal-box input[type="text"], .modal-box input[type="url"] {
+  width: 100%; background: var(--bg-void); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 10px 12px; color: var(--text); font-size: 14px; font-family: var(--font-body);
+}
+.upload-dropzone {
+  border: 2px dashed var(--border); border-radius: var(--radius-sm); padding: 28px 16px;
+  text-align: center; cursor: pointer; transition: border-color 0.15s ease;
+}
+.upload-dropzone:hover { border-color: var(--accent); }
+.upload-dropzone svg { width: 28px; height: 28px; stroke: var(--text-dim); margin-bottom: 8px; }
+.upload-dropzone p { font-size: 13px; color: var(--text-dim); }
+.upload-dropzone .placeholder-note { font-size: 11.5px; color: var(--star); margin-top: 6px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+.modal-actions button { flex: 1; padding: 11px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; border: none; }
+.btn-cancel { background: var(--bg-panel-raised); color: var(--text); border: 1px solid var(--border) !important; }
+.btn-confirm { background: var(--accent); color: #fff; }
+.btn-confirm:disabled { background: var(--accent-dim); cursor: not-allowed; }
+
+/* YouTube trim UI */
+.yt-trim-preview { margin: 14px 0; border-radius: var(--radius-sm); overflow: hidden; display: none; }
+.yt-trim-preview.show { display: block; }
+.yt-trim-preview .yt-embed-wrap { margin-bottom: 10px; }
+.trim-slider-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.trim-slider-row label { width: 44px; font-size: 12px; color: var(--text-dim); flex-shrink: 0; }
+.trim-slider-row input[type="range"] { flex: 1; accent-color: var(--accent); }
+.trim-slider-row .trim-time { width: 42px; font-size: 12px; color: var(--text); text-align: right; flex-shrink: 0; }
+
+.status-msg { font-size: 13px; padding: 8px 10px; border-radius: var(--radius-sm); margin-top: 10px; display: none; }
+.status-msg.show { display: block; }
+.status-msg.error { background: rgba(242,113,91,0.12); color: var(--danger); }
+.status-msg.success { background: rgba(111,207,151,0.12); color: var(--success); }
+
+/* ===== Hamburger dropdown ===== */
+.dropdown-menu {
+  position: fixed; top: 60px; left: 16px; z-index: 110;
+  width: 240px; max-width: calc(100vw - 32px);
+  background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius-md);
+  padding: 6px; display: none;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+.dropdown-menu.show { display: block; }
+.menu-item {
+  display: flex; align-items: center; gap: 11px; width: 100%;
+  background: none; border: none; color: var(--text);
+  padding: 10px 12px; border-radius: var(--radius-sm); font-size: 13.5px; font-weight: 500;
+  text-align: left; cursor: pointer;
+}
+.menu-item:hover { background: var(--bg-panel-raised); }
+.menu-item svg { width: 17px; height: 17px; stroke: var(--text-dim); flex-shrink: 0; }
+.menu-item.danger { color: var(--danger); }
+.menu-item.danger svg { stroke: var(--danger); }
+.menu-divider { height: 1px; background: var(--border); margin: 6px 4px; }
+
+/* Secret key modal */
+.key-display {
+  background: var(--bg-void); border: 1px solid var(--border); border-radius: var(--radius-sm);
+  padding: 14px; font-family: monospace; font-size: 15px; letter-spacing: 0.04em;
+  color: var(--star); text-align: center; word-break: break-all; margin-bottom: 14px;
+}
+.copy-key-btn {
+  width: 100%; background: var(--accent); color: #fff; border: none;
+  padding: 11px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600;
+}
+.copy-key-btn:hover { background: #6B7BFF; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--bg-panel-raised); border: 1px solid var(--border); color: var(--text);
+  padding: 11px 18px; border-radius: var(--radius-md); font-size: 13.5px;
+  z-index: 300; opacity: 0; transition: all 0.25s ease; pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<!-- ===== TOP BAR ===== -->
+<header class="topbar">
+  <div class="topbar-left">
+    <!-- Profile: editable avatar circle -->
+    <button class="profile-circle-btn" id="profile-circle-btn" title="Your profile">
+      <span id="profile-circle-initials">?</span>
+      <span class="profile-edit-badge">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+      </span>
+    </button>
+
+    <div class="topbar-brand">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M14 1.5C14 1.5 20 7 20 15C20 19 18 22.5 14 25C10 22.5 8 19 8 15C8 7 14 1.5 14 1.5Z" fill="#5B6EF5"/>
+        <path d="M8 18L4 22L6 24L8.5 20.5" fill="#F5C77E"/>
+        <path d="M20 18L24 22L22 24L19.5 20.5" fill="#F5C77E"/>
+        <ellipse cx="14" cy="11.5" rx="3.6" ry="4.4" fill="none" stroke="#0A0E1A" stroke-width="2.6"/>
+      </svg>
+      <span>ZeroSpace</span>
+    </div>
+  </div>
+
+  <div class="topbar-icons">
+    <!-- Hamburger menu -->
+    <button class="icon-btn" id="hamburger-btn" title="Menu" aria-label="Menu">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+
+    <!-- Astronaut = Friends -->
+    <button class="icon-btn" id="friends-btn" title="Friends" aria-label="Friends">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="9" r="4"/><path d="M12 13c-3 0-5 2.5-5 6a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1c0-3.5-2-6-5-6Z"/><path d="M5 10l-2-1M19 10l2-1"/></svg>
+      <span class="icon-badge" id="friends-badge">0</span>
+    </button>
+
+    <!-- Rocket = Messages -->
+    <button class="icon-btn" id="messages-btn" title="Messages" aria-label="Messages">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2c3 3 4 7 4 11l-4 4-4-4c0-4 1-8 4-11Z"/><path d="M8 15l-3 3 2 1 1-2M16 15l3 3-2 1-1-2"/><circle cx="12" cy="9" r="1.4"/></svg>
+      <span class="icon-badge" id="messages-badge">0</span>
+    </button>
+
+    <!-- Earth = Notifications -->
+    <button class="icon-btn" id="notifs-btn" title="Notifications" aria-label="Notifications">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18Z"/></svg>
+      <span class="icon-badge" id="notifs-badge">0</span>
+    </button>
+  </div>
+</header>
+
+<!-- ===== HAMBURGER MENU ===== -->
+<div class="panel-overlay" id="menu-overlay"></div>
+<div class="dropdown-menu" id="hamburger-menu">
+  <button class="menu-item" id="menu-view-key">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    View my secret user key
+  </button>
+  <button class="menu-item" id="menu-add-user">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M19 8v6M22 11h-6"/></svg>
+    Add a user
+  </button>
+  <button class="menu-item" id="menu-blocked">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M5.5 5.5l13 13"/></svg>
+    Blocked contacts
+  </button>
+  <div class="menu-divider"></div>
+  <a class="menu-item" href="contact-support.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.6L3 20l1-5.4A8.5 8.5 0 1 1 21 11.5Z"/></svg>
+    Contact us
+  </a>
+  <a class="menu-item" href="report-bug.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="8" y="6" width="8" height="12" rx="4"/><path d="M8 11H4M20 11h-4M9 3l1.5 2M15 3l-1.5 2M9 21l1.5-2M15 21l-1.5-2"/></svg>
+    Report a bug
+  </a>
+  <a class="menu-item" href="donate.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>
+    Donate to us
+  </a>
+  <div class="menu-divider"></div>
+  <button class="menu-item danger" id="menu-signout">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+    Sign out
+  </button>
+</div>
+
+<!-- ===== MAIN FEED ===== -->
+<div class="app-body">
+  <main class="feed-col">
+
+    <div class="composer">
+      <textarea id="post-text" placeholder="What's going on?" rows="2"></textarea>
+      <div class="composer-preview" id="photo-preview">
+        <img id="photo-preview-img" src="" alt="">
+        <button class="remove-media" id="remove-photo">×</button>
+      </div>
+      <div class="composer-preview" id="yt-preview">
+        <div class="yt-embed-wrap" id="yt-embed-container"></div>
+        <button class="remove-media" id="remove-yt">×</button>
+      </div>
+      <div class="composer-actions">
+        <div class="composer-tools">
+          <button class="tool-btn" id="open-photo-modal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+            Photo
+          </button>
+          <button class="tool-btn" id="open-music-modal">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+            Music
+          </button>
+        </div>
+        <button class="post-btn" id="submit-post-btn">Post</button>
+      </div>
+    </div>
+
+    <div id="feed-list"></div>
+
+  </main>
+</div>
+
+<!-- ===== FRIENDS PANEL ===== -->
+<div class="panel-overlay" id="friends-overlay"></div>
+<div class="side-panel" id="friends-panel">
+  <div class="panel-header">
+    <h2>Friends</h2>
+    <button class="panel-close" data-close-panel="friends">✕</button>
+  </div>
+  <div class="panel-search">
+    <input type="text" id="friend-search" placeholder="Search by name or email…">
+  </div>
+  <div class="panel-body" id="friends-body"></div>
+</div>
+
+<!-- ===== MESSAGES PANEL ===== -->
+<div class="panel-overlay" id="messages-overlay"></div>
+<div class="side-panel" id="messages-panel">
+  <div id="messages-list-view">
+    <div class="panel-header">
+      <h2>Messages</h2>
+      <button class="panel-close" data-close-panel="messages">✕</button>
+    </div>
+    <div class="panel-body" id="messages-body"></div>
+  </div>
+  <div class="chat-view" id="chat-view">
+    <div class="chat-header">
+      <button class="chat-back" id="chat-back-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div class="list-avatar" id="chat-avatar">?</div>
+      <div class="list-name" id="chat-name">—</div>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Type a message…">
+      <button class="chat-send" id="chat-send-btn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7Z"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== NOTIFICATIONS PANEL ===== -->
+<div class="panel-overlay" id="notifs-overlay"></div>
+<div class="side-panel" id="notifs-panel">
+  <div class="panel-header">
+    <h2>Notifications</h2>
+    <button class="panel-close" data-close-panel="notifs">✕</button>
+  </div>
+  <div class="panel-body" id="notifs-body"></div>
+</div>
+
+<!-- ===== PHOTO UPLOAD MODAL (placeholder — no real storage yet) ===== -->
+<div class="modal-overlay" id="photo-modal">
+  <div class="modal-box">
+    <h3>Add a photo</h3>
+    <p class="modal-sub">Pick an image from your device to attach to this post.</p>
+    <label class="upload-dropzone" id="photo-dropzone">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+      <p>Click to choose a photo</p>
+      <p class="placeholder-note">Preview-only for now — storage upload isn't wired up yet</p>
+      <input type="file" accept="image/*" id="photo-file-input" style="display:none;">
+    </label>
+    <div class="modal-actions">
+      <button class="btn-cancel" data-close-modal="photo">Cancel</button>
+      <button class="btn-confirm" id="confirm-photo-btn" disabled>Attach</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== YOUTUBE TRIM MODAL ===== -->
+<div class="modal-overlay" id="music-modal">
+  <div class="modal-box">
+    <h3>Add music from YouTube</h3>
+    <p class="modal-sub">Paste a link, then set where playback should start and end.</p>
+    <div class="field">
+      <label for="yt-url-input">YouTube link</label>
+      <input type="url" id="yt-url-input" placeholder="https://www.youtube.com/watch?v=…">
+    </div>
+    <div class="yt-trim-preview" id="yt-trim-preview">
+      <div class="yt-embed-wrap" id="yt-modal-embed"></div>
+      <div class="trim-slider-row">
+        <label>Start</label>
+        <input type="range" id="trim-start" min="0" max="600" value="0">
+        <span class="trim-time" id="trim-start-time">0:00</span>
+      </div>
+      <div class="trim-slider-row">
+        <label>End</label>
+        <input type="range" id="trim-end" min="0" max="600" value="30">
+        <span class="trim-time" id="trim-end-time">0:30</span>
+      </div>
+    </div>
+    <div class="status-msg" id="music-status"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" data-close-modal="music">Cancel</button>
+      <button class="btn-confirm" id="confirm-music-btn" disabled>Attach</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECRET KEY MODAL ===== -->
+<div class="modal-overlay" id="key-modal">
+  <div class="modal-box">
+    <h3>Your secret user key</h3>
+    <p class="modal-sub">Share this with someone you know so they can add you instantly — anyone with this key can send you a friend request directly.</p>
+    <div class="key-display" id="key-display">…</div>
+    <button class="copy-key-btn" id="copy-key-btn">Copy key</button>
+    <div class="modal-actions">
+      <button class="btn-cancel" data-close-modal="key" style="flex:1;">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADD USER (BY KEY) MODAL ===== -->
+<div class="modal-overlay" id="adduser-modal">
+  <div class="modal-box">
+    <h3>Add a user</h3>
+    <p class="modal-sub">Paste the secret key someone shared with you to send them a friend request.</p>
+    <div class="field">
+      <label for="add-user-key-input">Their secret key</label>
+      <input type="text" id="add-user-key-input" placeholder="Paste key here">
+    </div>
+    <div class="status-msg" id="adduser-status"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" data-close-modal="adduser">Cancel</button>
+      <button class="btn-confirm" id="confirm-adduser-btn">Send request</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== BLOCKED CONTACTS PANEL ===== -->
+<div class="panel-overlay" id="blocked-overlay"></div>
+<div class="side-panel" id="blocked-panel">
+  <div class="panel-header">
+    <h2>Blocked contacts</h2>
+    <button class="panel-close" data-close-panel="blocked">✕</button>
+  </div>
+  <div class="panel-body" id="blocked-body"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+// ========================================
+// ↓↓↓ PASTE YOUR SUPABASE KEYS HERE ↓↓↓
+// ========================================
+const SUPABASE_URL = 'YOUR_SUPABASE_PROJECT_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+// ========================================
+// ↑↑↑ EDIT ONLY THE TWO LINES ABOVE ↑↑↑
+// ========================================
+
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let currentUser = null;
+let currentProfile = null;
+let profileCache = {}; // id -> profile
+let activeChatUserId = null;
+let selectedPhotoDataUrl = null;
+let selectedYoutubeId = null;
+let selectedTrimStart = 0;
+let selectedTrimEnd = 30;
+
+function initials(name, email) {
+  const src = (name || email || '?').trim();
+  const parts = src.split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return src.slice(0, 2).toUpperCase();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2600);
+}
+
+function timeAgo(dateStr) {
+  const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  return Math.floor(diff / 86400) + 'd ago';
+}
+
+function extractYoutubeId(url) {
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=)([a-zA-Z0-9_-]{11})/,
+    /(?:youtu\.be\/)([a-zA-Z0-9_-]{11})/,
+    /(?:youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+async function getProfile(id) {
+  if (profileCache[id]) return profileCache[id];
+  const { data } = await supabaseClient.from('profiles').select('*').eq('id', id).single();
+  if (data) profileCache[id] = data;
+  return data;
+}
+
+// ========================================
+// AUTH CHECK
+// ========================================
+(async function init() {
+  const { data } = await supabaseClient.auth.getSession();
+  if (!data.session) { window.location.href = 'index.html'; return; }
+  currentUser = data.session.user;
+  currentProfile = await getProfile(currentUser.id);
+
+  document.getElementById('profile-circle-initials').textContent = initials(currentProfile?.full_name, currentUser.email);
+
+  await ensureSecretKey();
+
+  loadFeed();
+  loadFriendsPanel();
+  loadMessagesPanel();
+  loadNotifsPanel();
+  loadBlockedPanel();
+  subscribeRealtime();
+})();
+
+document.getElementById('profile-circle-btn').addEventListener('click', () => {
+  showToast('Editable profile page — coming in the next build');
+});
+
+// Astronaut = Friends, Rocket = Messages, Earth = Notifications
+// (handled by the existing friends-btn / messages-btn / notifs-btn listeners below)
+
+// ========================================
+// HAMBURGER MENU
+// ========================================
+document.getElementById('hamburger-btn').addEventListener('click', () => {
+  document.getElementById('hamburger-menu').classList.add('show');
+  document.getElementById('menu-overlay').classList.add('show');
+});
+function closeHamburgerMenu() {
+  document.getElementById('hamburger-menu').classList.remove('show');
+  document.getElementById('menu-overlay').classList.remove('show');
+}
+document.getElementById('menu-overlay').addEventListener('click', closeHamburgerMenu);
+
+document.getElementById('menu-signout').addEventListener('click', async () => {
+  closeHamburgerMenu();
+  if (confirm('Sign out of ZeroSpace?')) {
+    await supabaseClient.auth.signOut();
+    window.location.href = 'index.html';
+  }
+});
+
+document.getElementById('menu-view-key').addEventListener('click', () => {
+  closeHamburgerMenu();
+  document.getElementById('key-display').textContent = currentProfile?.secret_key || '…';
+  document.getElementById('key-modal').classList.add('show');
+});
+document.getElementById('copy-key-btn').addEventListener('click', () => {
+  const key = currentProfile?.secret_key;
+  if (!key) return;
+  navigator.clipboard.writeText(key).then(() => showToast('Key copied'));
+});
+
+document.getElementById('menu-add-user').addEventListener('click', () => {
+  closeHamburgerMenu();
+  document.getElementById('add-user-key-input').value = '';
+  document.getElementById('adduser-status').className = 'status-msg';
+  document.getElementById('adduser-modal').classList.add('show');
+});
+
+document.getElementById('menu-blocked').addEventListener('click', () => {
+  closeHamburgerMenu();
+  openPanel('blocked');
+});
+
+// ========================================
+// SECRET USER KEY
+// ========================================
+function generateSecretKey() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let key = '';
+  for (let i = 0; i < 12; i++) {
+    if (i > 0 && i % 4 === 0) key += '-';
+    key += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return key;
+}
+
+async function ensureSecretKey() {
+  if (currentProfile?.secret_key) return;
+  const newKey = generateSecretKey();
+  const { data, error } = await supabaseClient
+    .from('profiles').update({ secret_key: newKey }).eq('id', currentUser.id).select().single();
+  if (!error && data) {
+    currentProfile = data;
+    profileCache[currentUser.id] = data;
+  }
+}
+
+document.getElementById('confirm-adduser-btn').addEventListener('click', async () => {
+  const input = document.getElementById('add-user-key-input');
+  const statusEl = document.getElementById('adduser-status');
+  const key = input.value.trim().toUpperCase();
+
+  if (!key) { statusEl.textContent = 'Paste a key first.'; statusEl.className = 'status-msg show error'; return; }
+  if (key === currentProfile?.secret_key) { statusEl.textContent = "That's your own key."; statusEl.className = 'status-msg show error'; return; }
+
+  const { data: match } = await supabaseClient.from('profiles').select('*').eq('secret_key', key).maybeSingle();
+  if (!match) { statusEl.textContent = 'No account matches that key.'; statusEl.className = 'status-msg show error'; return; }
+
+  const { error } = await supabaseClient.from('friendships').insert({
+    requester_id: currentUser.id, addressee_id: match.id, status: 'pending'
+  });
+  if (error) {
+    statusEl.textContent = error.message.includes('duplicate') ? 'Request already sent.' : 'Could not send request.';
+    statusEl.className = 'status-msg show error';
+    return;
+  }
+  statusEl.textContent = `Friend request sent to ${match.full_name || match.email}.`;
+  statusEl.className = 'status-msg show success';
+  showToast('Friend request sent');
+});
+
+// ========================================
+// BLOCKED CONTACTS (placeholder data layer — ready to wire to a real table)
+// ========================================
+async function loadBlockedPanel() {
+  const body = document.getElementById('blocked-body');
+  body.innerHTML = `<div class="empty-state"><p>No blocked contacts.</p></div>`;
+}
+
+// ========================================
+// PANEL OPEN / CLOSE
+// ========================================
+function openPanel(name) {
+  document.getElementById(name + '-overlay').classList.add('show');
+  document.getElementById(name + '-panel').classList.add('show');
+}
+function closePanel(name) {
+  document.getElementById(name + '-overlay').classList.remove('show');
+  document.getElementById(name + '-panel').classList.remove('show');
+}
+document.getElementById('friends-btn').addEventListener('click', () => openPanel('friends'));
+document.getElementById('messages-btn').addEventListener('click', () => openPanel('messages'));
+document.getElementById('notifs-btn').addEventListener('click', () => { openPanel('notifs'); markNotifsRead(); });
+document.querySelectorAll('[data-close-panel]').forEach(btn => {
+  btn.addEventListener('click', () => closePanel(btn.dataset.closePanel));
+});
+document.getElementById('friends-overlay').addEventListener('click', () => closePanel('friends'));
+document.getElementById('messages-overlay').addEventListener('click', () => closePanel('messages'));
+document.getElementById('notifs-overlay').addEventListener('click', () => closePanel('notifs'));
+
+// ========================================
+// FEED
+// ========================================
+async function loadFeed() {
+  const feedList = document.getElementById('feed-list');
+  const { data: posts, error } = await supabaseClient
+    .from('posts').select('*').order('created_at', { ascending: false }).limit(50);
+
+  if (error || !posts || posts.length === 0) {
+    feedList.innerHTML = `
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/></svg>
+        <p>No posts yet — be the first to share something.</p>
+      </div>`;
+    return;
+  }
+
+  const authorIds = [...new Set(posts.map(p => p.author_id))];
+  await Promise.all(authorIds.map(id => getProfile(id)));
+
+  feedList.innerHTML = posts.map(post => {
+    const author = profileCache[post.author_id];
+    const name = author?.full_name || author?.email || 'Someone';
+    let mediaHtml = '';
+    if (post.photo_url) {
+      mediaHtml += `<div class="post-photo"><img src="${escapeHtml(post.photo_url)}" alt=""></div>`;
+    }
+    if (post.youtube_video_id) {
+      const start = Math.floor(post.youtube_start_seconds || 0);
+      const end = Math.floor(post.youtube_end_seconds || 0);
+      mediaHtml += `<div class="yt-embed-wrap"><iframe src="https://www.youtube.com/embed/${escapeHtml(post.youtube_video_id)}?start=${start}&end=${end}" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>`;
+    }
+    return `
+      <div class="post-card">
+        <div class="post-header">
+          <div class="post-avatar">${initials(author?.full_name, author?.email)}</div>
+          <div>
+            <div class="post-author">${escapeHtml(name)}</div>
+            <div class="post-time">${timeAgo(post.created_at)}</div>
+          </div>
+        </div>
+        ${post.content ? `<div class="post-content">${escapeHtml(post.content)}</div>` : ''}
+        ${mediaHtml}
+      </div>`;
+  }).join('');
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// ========================================
+// COMPOSER
+// ========================================
+document.getElementById('submit-post-btn').addEventListener('click', async () => {
+  const textEl = document.getElementById('post-text');
+  const content = textEl.value.trim();
+  if (!content && !selectedPhotoDataUrl && !selectedYoutubeId) {
+    showToast('Write something or add media first');
+    return;
+  }
+
+  const btn = document.getElementById('submit-post-btn');
+  btn.disabled = true; btn.textContent = 'Posting…';
+
+  const payload = { author_id: currentUser.id, content: content || null };
+  if (selectedPhotoDataUrl) payload.photo_url = selectedPhotoDataUrl;
+  if (selectedYoutubeId) {
+    payload.youtube_video_id = selectedYoutubeId;
+    payload.youtube_start_seconds = selectedTrimStart;
+    payload.youtube_end_seconds = selectedTrimEnd;
+  }
+
+  const { error } = await supabaseClient.from('posts').insert(payload);
+  btn.disabled = false; btn.textContent = 'Post';
+
+  if (error) { showToast('Could not post: ' + error.message); return; }
+
+  textEl.value = '';
+  clearPhotoAttachment();
+  clearMusicAttachment();
+  showToast('Posted!');
+  loadFeed();
+});
+
+// ---- Photo modal (placeholder preview only) ----
+document.getElementById('open-photo-modal').addEventListener('click', () => {
+  document.getElementById('photo-modal').classList.add('show');
+});
+document.getElementById('photo-dropzone').addEventListener('click', () => {
+  document.getElementById('photo-file-input').click();
+});
+document.getElementById('photo-file-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    selectedPhotoDataUrl = ev.target.result; // local preview only — not uploaded to storage
+    document.getElementById('confirm-photo-btn').disabled = false;
+  };
+  reader.readAsDataURL(file);
+});
+document.getElementById('confirm-photo-btn').addEventListener('click', () => {
+  document.getElementById('photo-preview-img').src = selectedPhotoDataUrl;
+  document.getElementById('photo-preview').classList.add('show');
+  closeModal('photo');
+});
+document.getElementById('remove-photo').addEventListener('click', clearPhotoAttachment);
+function clearPhotoAttachment() {
+  selectedPhotoDataUrl = null;
+  document.getElementById('photo-preview').classList.remove('show');
+  document.getElementById('photo-file-input').value = '';
+  document.getElementById('confirm-photo-btn').disabled = true;
+}
+
+// ---- Music / YouTube trim modal ----
+document.getElementById('open-music-modal').addEventListener('click', () => {
+  document.getElementById('music-modal').classList.add('show');
+});
+document.getElementById('yt-url-input').addEventListener('input', (e) => {
+  const id = extractYoutubeId(e.target.value.trim());
+  const statusEl = document.getElementById('music-status');
+  if (!id) {
+    document.getElementById('yt-trim-preview').classList.remove('show');
+    document.getElementById('confirm-music-btn').disabled = true;
+    if (e.target.value.trim()) { statusEl.textContent = "That doesn't look like a YouTube link."; statusEl.className = 'status-msg show error'; }
+    else { statusEl.className = 'status-msg'; }
+    return;
+  }
+  statusEl.className = 'status-msg';
+  selectedYoutubeId = id;
+  document.getElementById('yt-modal-embed').innerHTML = `<iframe src="https://www.youtube.com/embed/${id}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+  document.getElementById('yt-trim-preview').classList.add('show');
+  document.getElementById('confirm-music-btn').disabled = false;
+  selectedTrimStart = 0; selectedTrimEnd = 30;
+  document.getElementById('trim-start').value = 0;
+  document.getElementById('trim-end').value = 30;
+  document.getElementById('trim-start-time').textContent = '0:00';
+  document.getElementById('trim-end-time').textContent = '0:30';
+});
+document.getElementById('trim-start').addEventListener('input', (e) => {
+  selectedTrimStart = parseInt(e.target.value, 10);
+  if (selectedTrimStart >= selectedTrimEnd) {
+    selectedTrimEnd = selectedTrimStart + 5;
+    document.getElementById('trim-end').value = selectedTrimEnd;
+    document.getElementById('trim-end-time').textContent = formatTime(selectedTrimEnd);
+  }
+  document.getElementById('trim-start-time').textContent = formatTime(selectedTrimStart);
+});
+document.getElementById('trim-end').addEventListener('input', (e) => {
+  selectedTrimEnd = parseInt(e.target.value, 10);
+  if (selectedTrimEnd <= selectedTrimStart) {
+    selectedTrimStart = Math.max(0, selectedTrimEnd - 5);
+    document.getElementById('trim-start').value = selectedTrimStart;
+    document.getElementById('trim-start-time').textContent = formatTime(selectedTrimStart);
+  }
+  document.getElementById('trim-end-time').textContent = formatTime(selectedTrimEnd);
+});
+document.getElementById('confirm-music-btn').addEventListener('click', () => {
+  document.getElementById('yt-embed-container').innerHTML = `<iframe src="https://www.youtube.com/embed/${selectedYoutubeId}?start=${selectedTrimStart}&end=${selectedTrimEnd}" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+  document.getElementById('yt-preview').classList.add('show');
+  closeModal('music');
+});
+document.getElementById('remove-yt').addEventListener('click', clearMusicAttachment);
+function clearMusicAttachment() {
+  selectedYoutubeId = null;
+  document.getElementById('yt-preview').classList.remove('show');
+  document.getElementById('yt-url-input').value = '';
+  document.getElementById('yt-trim-preview').classList.remove('show');
+  document.getElementById('confirm-music-btn').disabled = true;
+}
+
+function closeModal(name) {
+  document.getElementById(name + '-modal').classList.remove('show');
+}
+document.querySelectorAll('[data-close-modal]').forEach(btn => {
+  btn.addEventListener('click', () => closeModal(btn.dataset.closeModal));
+});
+
+// ========================================
+// FRIENDS
+// ========================================
+async function loadFriendsPanel() {
+  const body = document.getElementById('friends-body');
+
+  const { data: requests } = await supabaseClient
+    .from('friendships').select('*')
+    .eq('addressee_id', currentUser.id).eq('status', 'pending');
+
+  const { data: accepted } = await supabaseClient
+    .from('friendships').select('*')
+    .or(`requester_id.eq.${currentUser.id},addressee_id.eq.${currentUser.id}`)
+    .eq('status', 'accepted');
+
+  const badge = document.getElementById('friends-badge');
+  const reqCount = requests?.length || 0;
+  badge.textContent = reqCount;
+  badge.classList.toggle('show', reqCount > 0);
+
+  let html = '';
+
+  if (requests && requests.length > 0) {
+    html += '<div style="padding:8px; font-size:12px; color:var(--text-dim); font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">Requests</div>';
+    for (const r of requests) {
+      const p = await getProfile(r.requester_id);
+      html += `
+        <div class="list-row">
+          <div class="list-avatar">${initials(p?.full_name, p?.email)}</div>
+          <div class="list-info">
+            <div class="list-name">${escapeHtml(p?.full_name || p?.email || 'Someone')}</div>
+          </div>
+          <div class="list-actions">
+            <button class="mini-btn accept" data-accept-friend="${r.id}">Accept</button>
+            <button class="mini-btn decline" data-decline-friend="${r.id}">✕</button>
+          </div>
+        </div>`;
+    }
+  }
+
+  if (accepted && accepted.length > 0) {
+    html += '<div style="padding:8px; margin-top:8px; font-size:12px; color:var(--text-dim); font-weight:600; text-transform:uppercase; letter-spacing:0.04em;">Your friends</div>';
+    for (const f of accepted) {
+      const otherId = f.requester_id === currentUser.id ? f.addressee_id : f.requester_id;
+      const p = await getProfile(otherId);
+      html += `
+        <div class="list-row">
+          <div class="list-avatar">${initials(p?.full_name, p?.email)}</div>
+          <div class="list-info">
+            <div class="list-name">${escapeHtml(p?.full_name || p?.email || 'Someone')}</div>
+          </div>
+          <div class="list-actions">
+            <button class="mini-btn decline" data-remove-friend="${f.id}">Remove</button>
+          </div>
+        </div>`;
+    }
+  }
+
+  if (!html) {
+    html = `<div class="empty-state"><p>No friends yet — search for someone below to add them.</p></div>`;
+  }
+
+  body.innerHTML = html;
+
+  body.querySelectorAll('[data-accept-friend]').forEach(btn => {
+    btn.addEventListener('click', () => respondFriendRequest(btn.dataset.acceptFriend, 'accepted'));
+  });
+  body.querySelectorAll('[data-decline-friend]').forEach(btn => {
+    btn.addEventListener('click', () => removeFriendship(btn.dataset.declineFriend));
+  });
+  body.querySelectorAll('[data-remove-friend]').forEach(btn => {
+    btn.addEventListener('click', () => removeFriendship(btn.dataset.removeFriend));
+  });
+}
+
+async function respondFriendRequest(friendshipId, status) {
+  const { error } = await supabaseClient.from('friendships').update({ status }).eq('id', friendshipId);
+  if (error) { showToast('Something went wrong'); return; }
+  showToast(status === 'accepted' ? 'Friend added' : 'Request declined');
+  loadFriendsPanel();
+}
+async function removeFriendship(friendshipId) {
+  const { error } = await supabaseClient.from('friendships').delete().eq('id', friendshipId);
+  if (error) { showToast('Something went wrong'); return; }
+  loadFriendsPanel();
+}
+
+let friendSearchTimeout;
+document.getElementById('friend-search').addEventListener('input', (e) => {
+  clearTimeout(friendSearchTimeout);
+  const q = e.target.value.trim();
+  if (!q) { loadFriendsPanel(); return; }
+  friendSearchTimeout = setTimeout(() => searchUsers(q), 350);
+});
+
+async function searchUsers(query) {
+  const body = document.getElementById('friends-body');
+  const { data: results } = await supabaseClient
+    .from('profiles').select('*')
+    .or(`full_name.ilike.%${query}%,email.ilike.%${query}%`)
+    .neq('id', currentUser.id)
+    .limit(15);
+
+  if (!results || results.length === 0) {
+    body.innerHTML = `<div class="empty-state"><p>No one found matching "${escapeHtml(query)}".</p></div>`;
+    return;
+  }
+
+  const { data: existing } = await supabaseClient
+    .from('friendships').select('*')
+    .or(`requester_id.eq.${currentUser.id},addressee_id.eq.${currentUser.id}`);
+
+  body.innerHTML = results.map(p => {
+    const rel = existing?.find(f => f.requester_id === p.id || f.addressee_id === p.id);
+    let actionHtml = `<button class="mini-btn accept" data-send-request="${p.id}">Add</button>`;
+    if (rel?.status === 'accepted') actionHtml = `<span class="list-sub">Friends</span>`;
+    else if (rel?.status === 'pending') actionHtml = `<span class="list-sub">Pending</span>`;
+
+    return `
+      <div class="list-row">
+        <div class="list-avatar">${initials(p.full_name, p.email)}</div>
+        <div class="list-info"><div class="list-name">${escapeHtml(p.full_name || p.email)}</div></div>
+        <div class="list-actions">${actionHtml}</div>
+      </div>`;
+  }).join('');
+
+  body.querySelectorAll('[data-send-request]').forEach(btn => {
+    btn.addEventListener('click', () => sendFriendRequest(btn.dataset.sendRequest));
+  });
+}
+
+async function sendFriendRequest(addresseeId) {
+  const { error } = await supabaseClient.from('friendships').insert({
+    requester_id: currentUser.id, addressee_id: addresseeId, status: 'pending'
+  });
+  if (error) { showToast('Could not send request'); return; }
+  showToast('Friend request sent');
+  searchUsers(document.getElementById('friend-search').value.trim());
+}
+
+// ========================================
+// MESSAGES
+// ========================================
+async function loadMessagesPanel() {
+  document.getElementById('messages-list-view').style.display = 'block';
+  document.getElementById('chat-view').classList.remove('show');
+
+  const body = document.getElementById('messages-body');
+  const { data: msgs } = await supabaseClient
+    .from('messages').select('*')
+    .or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`)
+    .order('created_at', { ascending: false });
+
+  const unreadBadge = document.getElementById('messages-badge');
+  const unreadCount = msgs?.filter(m => m.recipient_id === currentUser.id && !m.read).length || 0;
+  unreadBadge.textContent = unreadCount;
+  unreadBadge.classList.toggle('show', unreadCount > 0);
+
+  if (!msgs || msgs.length === 0) {
+    body.innerHTML = `<div class="empty-state"><p>No conversations yet. Message a friend from your friends list.</p></div>`;
+    return;
+  }
+
+  const threads = {};
+  for (const m of msgs) {
+    const otherId = m.sender_id === currentUser.id ? m.recipient_id : m.sender_id;
+    if (!threads[otherId] || new Date(m.created_at) > new Date(threads[otherId].created_at)) {
+      threads[otherId] = m;
+    }
+  }
+
+  let html = '';
+  for (const otherId of Object.keys(threads)) {
+    const p = await getProfile(otherId);
+    const lastMsg = threads[otherId];
+    const unread = lastMsg.recipient_id === currentUser.id && !lastMsg.read;
+    html += `
+      <div class="list-row" data-open-chat="${otherId}" style="cursor:pointer;">
+        <div class="list-avatar">${initials(p?.full_name, p?.email)}</div>
+        <div class="list-info">
+          <div class="list-name">${escapeHtml(p?.full_name || p?.email || 'Someone')}</div>
+          <div class="list-sub">${escapeHtml(lastMsg.content)}</div>
+        </div>
+        ${unread ? '<div class="unread-dot"></div>' : ''}
+      </div>`;
+  }
+  body.innerHTML = html;
+
+  body.querySelectorAll('[data-open-chat]').forEach(row => {
+    row.addEventListener('click', () => openChat(row.dataset.openChat));
+  });
+}
+
+async function openChat(otherUserId) {
+  activeChatUserId = otherUserId;
+  const p = await getProfile(otherUserId);
+  document.getElementById('chat-avatar').textContent = initials(p?.full_name, p?.email);
+  document.getElementById('chat-name').textContent = p?.full_name || p?.email || 'Someone';
+
+  document.getElementById('messages-list-view').style.display = 'none';
+  document.getElementById('chat-view').classList.add('show');
+
+  await supabaseClient.from('messages').update({ read: true })
+    .eq('recipient_id', currentUser.id).eq('sender_id', otherUserId).eq('read', false);
+
+  loadChatMessages();
+}
+
+async function loadChatMessages() {
+  const { data: msgs } = await supabaseClient
+    .from('messages').select('*')
+    .or(`and(sender_id.eq.${currentUser.id},recipient_id.eq.${activeChatUserId}),and(sender_id.eq.${activeChatUserId},recipient_id.eq.${currentUser.id})`)
+    .order('created_at', { ascending: true });
+
+  const container = document.getElementById('chat-messages');
+  if (!msgs || msgs.length === 0) {
+    container.innerHTML = `<div class="empty-state"><p>Say hi 👋</p></div>`;
+    return;
+  }
+  container.innerHTML = msgs.map(m => `
+    <div class="chat-bubble ${m.sender_id === currentUser.id ? 'mine' : 'theirs'}">${escapeHtml(m.content)}</div>
+  `).join('');
+  container.scrollTop = container.scrollHeight;
+}
+
+document.getElementById('chat-back-btn').addEventListener('click', loadMessagesPanel);
+
+document.getElementById('chat-send-btn').addEventListener('click', sendChatMessage);
+document.getElementById('chat-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') sendChatMessage();
+});
+async function sendChatMessage() {
+  const input = document.getElementById('chat-input');
+  const content = input.value.trim();
+  if (!content || !activeChatUserId) return;
+  input.value = '';
+  const { error } = await supabaseClient.from('messages').insert({
+    sender_id: currentUser.id, recipient_id: activeChatUserId, content
+  });
+  if (error) { showToast('Message failed to send'); return; }
+  loadChatMessages();
+}
+
+// ========================================
+// NOTIFICATIONS
+// ========================================
+async function loadNotifsPanel() {
+  const body = document.getElementById('notifs-body');
+  const { data: notifs } = await supabaseClient
+    .from('notifications').select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false })
+    .limit(30);
+
+  const badge = document.getElementById('notifs-badge');
+  const unread = notifs?.filter(n => !n.read).length || 0;
+  badge.textContent = unread;
+  badge.classList.toggle('show', unread > 0);
+
+  if (!notifs || notifs.length === 0) {
+    body.innerHTML = `<div class="empty-state"><p>Nothing yet — you'll see activity here.</p></div>`;
+    return;
+  }
+
+  let html = '';
+  for (const n of notifs) {
+    const actor = n.actor_id ? await getProfile(n.actor_id) : null;
+    const name = actor?.full_name || actor?.email || 'Someone';
+    let text = '';
+    if (n.type === 'friend_request') text = `${escapeHtml(name)} sent you a friend request`;
+    else if (n.type === 'friend_accept') text = `${escapeHtml(name)} accepted your friend request`;
+    else if (n.type === 'message') text = `${escapeHtml(name)} sent you a message`;
+    else text = `New activity from ${escapeHtml(name)}`;
+
+    html += `
+      <div class="list-row">
+        <div class="list-avatar">${initials(actor?.full_name, actor?.email)}</div>
+        <div class="list-info">
+          <div class="list-name" style="font-weight:500;">${text}</div>
+          <div class="list-sub">${timeAgo(n.created_at)}</div>
+        </div>
+        ${!n.read ? '<div class="unread-dot"></div>' : ''}
+      </div>`;
+  }
+  body.innerHTML = html;
+}
+
+async function markNotifsRead() {
+  await supabaseClient.from('notifications').update({ read: true }).eq('user_id', currentUser.id).eq('read', false);
+  setTimeout(() => {
+    document.getElementById('notifs-badge').classList.remove('show');
+  }, 800);
+}
+
+// ========================================
+// REALTIME
+// ========================================
+function subscribeRealtime() {
+  supabaseClient
+    .channel('public:messages')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+      const m = payload.new;
+      if (m.recipient_id === currentUser.id || m.sender_id === currentUser.id) {
+        loadMessagesPanel();
+        if (activeChatUserId && (m.sender_id === activeChatUserId || m.recipient_id === activeChatUserId)) {
+          loadChatMessages();
+        }
+        if (m.recipient_id === currentUser.id) showToast('New message');
+      }
+    })
+    .subscribe();
+
+  supabaseClient
+    .channel('public:notifications')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
+      if (payload.new.user_id === currentUser.id) loadNotifsPanel();
+    })
+    .subscribe();
+
+  supabaseClient
+    .channel('public:friendships')
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'friendships' }, () => {
+      loadFriendsPanel();
+    })
+    .subscribe();
+}
+</script>
+</body>
+</html>
